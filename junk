@@ -1,3 +1,36 @@
+version 2 
+param (
+   [string]$Directory = ".",
+   [string]$FileExtension = "*.txt",
+   [string]$OldWord,
+   [string]$NewWord,
+   [string]$SkipWord,
+   [string]$SkipSubfolder
+)
+
+$counter = 0
+
+Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | Where-Object { $_.FullName -notmatch [regex]::Escape($SkipSubfolder) } | ForEach-Object {
+   $file = $_.FullName
+   $fileContent = Get-Content $file
+   $newFileContent = @()
+   $fileContent | ForEach-Object {
+      $line = $_
+      if ($line -notmatch $SkipWord) {
+         $line = $line -creplace [regex]::Escape($OldWord), $NewWord
+      }
+      $newFileContent += $line
+   }
+   $newFileContent = $newFileContent -join [Environment]::NewLine
+   Set-Content $file $newFileContent
+   $counter++
+}
+
+Write-Host "$counter files were updated."
+
+
+
+#############
 param (
    [string]$Directory = ".",
    [string]$FileExtension = "*.txt",

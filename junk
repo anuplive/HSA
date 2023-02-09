@@ -30,7 +30,6 @@ pause
 
 
 
-
 @echo off
 setlocal enabledelayedexpansion
 
@@ -68,7 +67,6 @@ for /f "delims=" %%i in ('dir /b /s /a-d "%path%\*"') do (
     echo !content!>!file!
   )
 )
-
 
 
 

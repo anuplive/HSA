@@ -1,3 +1,49 @@
+param($oldWord, $newWord, $path = "$(Get-Location)", $excludeFolder = "", $skipWord = "")
+
+if ($oldWord -eq $null -or $newWord -eq $null) {
+  Write-Output "Error: Two arguments are required."
+  Write-Output "Usage: Replace.ps1 [-oldWord] <string> [-newWord] <string> [-path] <string> [-excludeFolder] <string> [-skipWord] <string>"
+  exit
+}
+
+Get-ChildItem -Path $path -File -Recurse | ForEach-Object {
+  if ($_.Directory.FullName -notlike "*$excludeFolder*") {
+    $file = $_.FullName
+    $lines = Get-Content $file
+    $newLines = $lines | ForEach-Object {
+      $line = $_
+      if ($skipWord -ne "") {
+        if ($line -notlike "*$skipWord*") {
+          $line = $line -replace $oldWord, $newWord
+        }
+      } else {
+        $line = $line -replace $oldWord, $newWord
+      }
+      $line
+    }
+    $newLines | Set-Content $file
+  }
+}
+
+
+
+.\Replace.ps1 -oldWord <old_word> -newWord <new_word> [-path <path>] [-excludeFolder <exclude_folder>] [-skipWord <skip_word>]
+
+
+########
+
+
+
+
+
+
+
+
+
+
+
+
+
 @echo off
 setlocal enabledelayedexpansion
 

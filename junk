@@ -12,12 +12,20 @@ $counter = 0
 Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | Where-Object { $_.FullName -notmatch [regex]::Escape($SkipSubfolder) } | ForEach-Object {
    $file = $_.FullName
    $fileContent = Get-Content $file
-   $fileContent = $fileContent | Where-Object { $_ -notmatch $SkipWord } | ForEach-Object { $_ -replace [regex]::Escape($OldWord), $NewWord, 'IgnoreCase' }
-   $fileContent = $fileContent -replace "`r`n$", "`r`n"
-   Set-Content $file $fileContent
+   $newFileContent = @()
+   $fileContent | ForEach-Object {
+      $line = $_
+      if ($line -notmatch $SkipWord) {
+         $line = $line -creplace [regex]::Escape($OldWord), $NewWord
+      }
+      $newFileContent += $line
+   }
+   $newFileContent = $newFileContent -replace "`r`n$", "`r`n"
+   Set-Content $file $newFileContent
    $counter++
 }
 
 Write-Host "$counter files were updated."
 
-.\replace_word.ps1 -Directory "C:\example" -FileExtension "*.txt" -OldWord "hello" -NewWord "world" -SkipWord "^#.*" -SkipSubfolder "C:\example\skipfolder"
+
+.\replace-word.ps1 -Directory "C:\ExampleFolder" -FileExtension "*.txt" -OldWord "Hello" -NewWord "Hi" -SkipWord "(comment)" -SkipSubfolder "C:\ExampleFolder\Archive"

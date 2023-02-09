@@ -3,6 +3,79 @@ param(
    [string]$newWord,
    [string]$path = $PWD,
    [string]$excludeFolder,
+   [string[]]$excludeFolders,
+   [string]$skipWord = '',
+   [string[]]$extensions
+)
+
+$skipRegex = [System.Text.RegularExpressions.Regex]::new($skipWord)
+
+Get-ChildItem -Path $path -Exclude $excludeFolders -Recurse -Force | 
+Where-Object { $extensions -contains $_.Extension } | 
+ForEach-Object {
+   $tempFile = $_.FullName + ".tmp"
+   (Get-Content $_.FullName) -join "" | Set-Content $tempFile
+   $lines = Get-Content $tempFile
+   $lines = $lines | ForEach-Object {
+      if ($skipRegex.IsMatch($_)) {
+         $_
+      }
+      else {
+         $_ -replace $oldWord, $newWord
+      }
+   }
+   $lines | Set-Content $tempFile
+   Remove-Item $_.FullName
+   Rename-Item $tempFile $_.FullName
+}
+
+.\script.ps1 -oldWord "old" -newWord "new" -path "C:\test" -excludeFolders "folder1", "folder2" -skipWord "\sskip\sme" -fileExtensions ".txt", ".log"
+
+
+########
+
+
+
+param(
+   [string]$oldWord,
+   [string]$newWord,
+   [string]$path = $PWD,
+   [string[]]$excludeFolders,
+   [string]$skipWord = '',
+   [string[]]$fileExtensions = @(".txt")
+)
+
+$skipRegex = [System.Text.RegularExpressions.Regex]::new($skipWord)
+
+Get-ChildItem -Path $path -Exclude $excludeFolders -Recurse -Force | 
+Where-Object { $fileExtensions -contains $_.Extension } | 
+ForEach-Object {
+   $tempFile = $_.FullName + ".tmp"
+   $lines = Get-Content $_.FullName
+   $lines = $lines | ForEach-Object {
+      if ($skipRegex.IsMatch($_)) {
+         $_
+      }
+      else {
+         $_ -replace $oldWord, $newWord
+      }
+   }
+   $lines | Set-Content $tempFile
+   Remove-Item $_.FullName
+   Rename-Item $tempFile $_.FullName
+}
+
+.\script.ps1 -oldWord "old" -newWord "new" -path "C:\test" -excludeFolders "folder1", "folder2" -skipWord "\sskip\sme" -fileExtensions ".txt", ".log"
+
+
+
+
+###############
+param(
+   [string]$oldWord,
+   [string]$newWord,
+   [string]$path = $PWD,
+   [string]$excludeFolder,
    [string]$skipWord = ''
 )
 

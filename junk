@@ -22,12 +22,13 @@ Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | Where-Object { 
       }
       $newFileContent += $line
    }
-   $newFileContent = ($newFileContent | Select-Object -First ($newFileContent.Count - 1)) + $newFileContent[-1].TrimEnd()
+   $newFileContent = $newFileContent.Take($newFileContent.Count - 1) + $newFileContent[-1].TrimEnd()
    Set-Content $file $newFileContent
    $counter++
 }
 
 Write-Host "$counter files were updated."
+
 
 
 .\ReplaceTextInFiles.ps1 -Directory "C:\Test" -FileExtension "*.txt" -OldWord "old" -NewWord "new" -SkipWord "skip" -SkipSubfolder "C:\Test\Subfolder"

@@ -2,20 +2,21 @@ param(
    [string]$oldWord,
    [string]$newWord,
    [string]$path = $PWD,
-   [string]$excludeFolder,
-   [string[]]$excludeFolders,
-   [string]$skipWord = '',
-   [string[]]$extensions
+   [string[]]$extensions = @(".txt"),
+   [string[]]$excludeFolders = @(),
+   [string]$skipWord = ''
 )
 
 $skipRegex = [System.Text.RegularExpressions.Regex]::new($skipWord)
+
+$filesChanged = [System.Collections.Generic.Dictionary[string,int]]::new()
 
 Get-ChildItem -Path $path -Exclude $excludeFolders -Recurse -Force | 
 Where-Object { $extensions -contains $_.Extension } | 
 ForEach-Object {
    $tempFile = $_.FullName + ".tmp"
-   (Get-Content $_.FullName) -join "" | Set-Content $tempFile
-   $lines = Get-Content $tempFile
+   $lines = Get-Content $_.FullName
+   $lineCount = $lines.Count
    $lines = $lines | ForEach-Object {
       if ($skipRegex.IsMatch($_)) {
          $_
@@ -24,12 +25,25 @@ ForEach-Object {
          $_ -replace $oldWord, $newWord
       }
    }
-   $lines | Set-Content $tempFile
-   Remove-Item $_.FullName
-   Rename-Item $tempFile $_.FullName
+   if ($lines.Count -ne $lineCount) {
+      $lines = $lines[0..($lines.Count-2)] + $lines[-1]
+      $lines | Set-Content $tempFile
+      Remove-Item $_.FullName
+      Rename-Item $tempFile $_.FullName
+
+      if (!$filesChanged.ContainsKey($_.Extension)) {
+         $filesChanged.Add($_.Extension, 0)
+      }
+      $filesChanged[$_.Extension]++
+   }
 }
 
-.\script.ps1 -oldWord "old" -newWord "new" -path "C:\test" -excludeFolders "folder1", "folder2" -skipWord "\sskip\sme" -fileExtensions ".txt", ".log"
+Write-Host "Files changed summary:"
+$filesChanged.Keys | ForEach-Object {
+   Write-Host "$($_) extension: $($filesChanged[$_]) file(s) changed"
+}
+
+.\script.ps1 -oldWord "old" -newWord "new" -path "C:\test" -excludeFolders "folder1", "folder2" -skipWord "skip\s+me" -fileExtensions ".txt", ".log"
 
 
 ########

@@ -1,4 +1,36 @@
 
+param(
+   [string]$oldWord,
+   [string]$newWord,
+   [string]$path = $PWD,
+   [string[]]$extensions,
+   [string]$excludeFolder,
+   [string]$skipWord = ''
+)
+
+$skipRegex = [System.Text.RegularExpressions.Regex]::new($skipWord)
+$filesChanged = 0
+
+Get-ChildItem -Path $path -Exclude $excludeFolder -Recurse -Force | 
+Where-Object { $_.Extension -in $extensions } | 
+ForEach-Object {
+   $tempFile = $_.FullName + ".tmp"
+   $lines = Get-Content $_.FullName
+   $lines = $lines | ForEach-Object {
+      if ($skipRegex.IsMatch($_)) {
+         $_
+      }
+      else {
+         $_ -replace $oldWord, $newWord
+      }
+   }
+   $lines | Set-Content $tempFile
+   Remove-Item $_.FullName
+   Rename-Item $tempFile $_.FullName
+   $filesChanged++
+}
+
+Write-Host "Number of files changed: $filesChanged"
 
 
 

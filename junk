@@ -1,46 +1,30 @@
 version 2 
 
+param ($directory, $fileExtensions, $wordToReplace, $newWord, $skipWord)
 
-param(
-    [string]$folder,
-    [string]$fileExtension = "*",
-    [string]$oldWord,
-    [string]$newWord,
-    [string]$skipWord
-)
-
-$skipWordRegex = [regex]::Escape($skipWord)
-
-Get-ChildItem $folder -Recurse -Include "*.$fileExtension" | ForEach-Object {
+Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | ForEach-Object {
     $file = $_.FullName
-    $lines = Get-Content $file
-    $updatedLines = @()
-    $fileUpdated = $false
-
-    foreach($line in $lines) {
-        if ($line -match $oldWord -and !($line -match $skipWordRegex)) {
-            $updatedLine = $line -replace "(?i)$oldWord", $newWord
-            $updatedLines += $updatedLine
-            $fileUpdated = $true
+    $content = Get-Content $file
+    if ($content -match $wordToReplace) {
+        $newContent = ""
+        $lineCount = 0
+        $content | ForEach-Object {
+            $line = $_
+            if ($line -notmatch $skipWord) {
+                $line = $line -replace $wordToReplace, $newWord, `
+                    ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            }
+            $newContent += $line + [Environment]::NewLine
+            $lineCount++
         }
-        else {
-            $updatedLines += $line
+        if ($lineCount -gt 0) {
+            $newContent = $newContent.TrimEnd([Environment]::NewLine)
         }
-    }
-
-    if ($fileUpdated) {
-        $updatedLines | Set-Content $file
-    }
-    else {
-        $lines | Set-Content $file
+        Set-Content $file $newContent
     }
 }
 
-
-
-
-.\ReplaceTextInFiles.ps1 -Directory "C:\Test" -FileExtension "*.txt" -OldWord "old" -NewWord "new" -SkipWord "skip" -SkipSubfolder "C:\Test\Subfolder"
-
+.\replace-word.ps1 -directory "C:\Test" -fileExtensions "*.txt" -wordToReplace "old" -newWord "new" -skipWord "skip"
 
 
 #############

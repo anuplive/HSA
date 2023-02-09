@@ -3,12 +3,13 @@ param (
    [string]$FileExtension = "*.txt",
    [string]$OldWord,
    [string]$NewWord,
-   [string]$SkipWord
+   [string]$SkipWord,
+   [string]$SkipSubfolder
 )
 
 $counter = 0
 
-Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | ForEach-Object {
+Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | Where-Object { $_.FullName -notmatch [regex]::Escape($SkipSubfolder) } | ForEach-Object {
    $file = $_.FullName
    $fileContent = Get-Content $file
    $fileContent = $fileContent | Where-Object { $_ -notmatch $SkipWord } | ForEach-Object { $_ -replace [regex]::Escape($OldWord), $NewWord, 'IgnoreCase' }
@@ -19,5 +20,4 @@ Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | ForEach-Object 
 
 Write-Host "$counter files were updated."
 
-
-.\replace_word.ps1 -Directory "C:\example" -FileExtension "*.txt" -OldWord "hello" -NewWord "world" -SkipWord "^#.*"
+.\replace_word.ps1 -Directory "C:\example" -FileExtension "*.txt" -OldWord "hello" -NewWord "world" -SkipWord "^#.*" -SkipSubfolder "C:\example\skipfolder"

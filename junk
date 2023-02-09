@@ -1,5 +1,6 @@
 version 2 
 
+
 param (
    [string]$Directory = ".",
    [string]$FileExtension = "*.txt",
@@ -13,22 +14,32 @@ $counter = 0
 
 Get-ChildItem -Path $Directory -Filter $FileExtension -Recurse | Where-Object { $_.FullName -notmatch [regex]::Escape($SkipSubfolder) } | ForEach-Object {
    $file = $_.FullName
-   $fileContent = Get-Content $file
-   $newFileContent = @()
-   $fileContent | ForEach-Object {
-      $line = $_
-      if ($line -notmatch $SkipWord) {
-         $line = $line -creplace [regex]::Escape($OldWord), $NewWord
+   $content = Get-Content $file
+
+   $hasOldWord = $false
+   $newContent = @()
+   foreach ($line in $content) {
+      if ($line -match [regex]::Escape($OldWord)) {
+         $hasOldWord = $true
       }
-      $newFileContent += $line
+
+      if ($line -match $SkipWord -or !$hasOldWord) {
+         $newContent += $line
+         continue
+      }
+
+      $newLine = $line -replace [regex]::Escape($OldWord), $NewWord, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+      $newContent += $newLine
    }
-   $newFileContent = ($newFileContent -join [Environment]::NewLine).Split([Environment]::NewLine)
-   $newFileContent = $newFileContent.Take($newFileContent.Count - 1) + $newFileContent[-1].TrimEnd()
-   Set-Content $file $newFileContent -Join [Environment]::NewLine
-   $counter++
+
+   if ($hasOldWord) {
+      $newContent | Set-Content $file
+      $counter++
+   }
 }
 
-Write-Host "$counter files were updated."
+Write-Host "Replaced '$OldWord' with '$NewWord' in $counter file(s)."
+
 
 
 

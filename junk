@@ -1,0 +1,62 @@
+@echo off
+setlocal enabledelayedexpansion
+
+if "%~2" == "" (
+  echo Error: Please specify the old and new words as arguments.
+  goto :eof
+)
+
+set "search=%~1"
+set "replace=%~2"
+set "path=%cd%"
+set "exclude_folder="
+
+if "%~3" neq "" set "path=%~3"
+if "%~4" neq "" set "exclude_folder=%~4"
+
+for /f "delims=" %%i in ('dir /b /s /a-d "%path%\*"') do (
+    if not "%%~dpni" == "%exclude_folder%\*" (
+        set "file=%%i"
+        set "content="
+        for /f "delims=" %%j in (!file!) do set "content=!content!%%j"
+        set "content=!content:%search%=%replace%!"
+        echo !content!>!file!
+    )
+)
+
+echo Done.
+pause
+
+
+
+@echo off - This line turns off the command echo, so that the commands being executed are not displayed on the screen.
+
+setlocal enabledelayedexpansion - This line enables delayed expansion, which allows environment variables to be modified and expanded at execution time, rather than at parse time.
+
+if "%~2" == "" ( - This line checks if the number of command-line arguments is less than 2. If this is the case, the script displays an error message and terminates execution.
+
+set "search=%~1" - This line sets the value of the search variable to the first command-line argument.
+
+set "replace=%~2" - This line sets the value of the replace variable to the second command-line argument.
+
+set "path=%cd%" - This line sets the value of the path variable to the current directory.
+
+set "exclude_folder=" - This line sets the value of the exclude_folder variable to an empty string.
+
+if "%~3" neq "" set "path=%~3" - This line checks if the third command-line argument is provided. If it is, it sets the value of the path variable to the third command-line argument.
+
+if "%~4" neq "" set "exclude_folder=%~4" - This line checks if the fourth command-line argument is provided. If it is, it sets the value of the exclude_folder variable to the fourth command-line argument.
+
+for /f "delims=" %%i in ('dir /b /s /a-d "%path%\*"') do ( - This line starts a for loop that iterates through all the files in the path directory and its subdirectories. The dir command lists the files in a directory, the /b option specifies to display just the names of the files, the /s option specifies to include files in subdirectories, and the /a-d option specifies to exclude directories.
+
+if not "%%~dpni" == "%exclude_folder%\*" ( - This line checks if the current file is not in the subfolder specified in the exclude_folder variable. If it is not, the script continues with the replace operation.
+
+set "file=%%i" - This line sets the value of the file variable to the current file being processed.
+
+set "content=" - This line sets the value of the content variable to an empty string.
+
+for /f "delims=" %%j in (!file!) do set "content=!content!%%j" - This line starts a for loop that reads the contents of the current file line by line and concatenates the lines into a single string stored in the content variable.
+
+set "content=!content:%search%=%replace%!" - This line replaces all instances of the search string in the content string with the replace string.
+
+echo !content!>!file! - This line writes the modified content string back to the current file.

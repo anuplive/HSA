@@ -71,6 +71,50 @@ for /f "delims=" %%i in ('dir /b /s /a-d "%path%\*"') do (
 
 
 
+### 3
+@echo off
+setlocal enabledelayedexpansion
+
+if "%~2" == "" (
+  echo Error: Two arguments are required.
+  echo Usage: replace.bat [old_word] [new_word] [path] [exclude_folder] [skip_word]
+  exit /b 1
+)
+
+set "search=%~1"
+set "replace=%~2"
+set "path=%cd%"
+set "exclude_folder="
+set "skip_word="
+
+if "%~3" neq "" set "path=%~3"
+if "%~4" neq "" set "exclude_folder=%~4"
+if "%~5" neq "" set "skip_word=%~5"
+
+for /f "delims=" %%i in ('dir /b /s /a-d "%path%\*"') do (
+  if not "%%~dpni" == "%exclude_folder%\*" (
+    set "file=%%i"
+    set "temp_file=%temp%\temp.txt"
+    set "content="
+    for /f "delims=" %%j in (!file!) do (
+      set "line=%%j"
+      if not "%skip_word%" == "" (
+        if not "%line:%skip_word%=%" == "%line%" (
+          set "line=%line:%search%=%replace%"
+        )
+      ) else (
+        set "line=%line:%search%=%replace%"
+      )
+      set "content=!content!%line%
+    )
+    echo !content!>!temp_file!
+    move /y !temp_file! !file!
+  )
+)
+
+
+
+
 
 
 

@@ -17,6 +17,7 @@ Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | Where-Object 
             $newContent += $line + [Environment]::NewLine
             $lineCount++
         }
+        # Trim the extra newline character
         if ($lineCount -gt 0) {
             $newContent = $newContent.TrimEnd([Environment]::NewLine)
         }
@@ -28,7 +29,7 @@ Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | Where-Object 
 Write-Host "Number of files updated: $count"
 
 
-.\replace-word.ps1 -directory "C:\Test" -fileExtensions "*.txt" -wordToReplace "old" -newWord "new" -skipWord "skip"
+.\script.ps1 -directory "C:\MyDirectory" -fileExtensions "*.txt,*.log" -wordToReplace "oldWord" -newWord "newWord" -skipWord "skipWord" -skipSubfolder "C:\MyDirectory\SkipThisSubfolder"
 
 
 

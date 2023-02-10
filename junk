@@ -34,8 +34,6 @@ Write-Host "Number of files updated: $count"
 
 version 2 
 
-param ($directory, $fileExtensions, $wordToReplace, $newWord, $skipWord, $skipSubfolder)
-
 $count = 0
 Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | Where-Object { $_.FullName -notmatch [regex]::Escape($skipSubfolder) }|ForEach-Object {
     $file = $_.FullName
@@ -43,17 +41,18 @@ Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | Where-Object 
     if ($content -match $wordToReplace) {
         $newContent = ""
         $lineCount = 0
+        $lastLine = $content[-1]
         $content | ForEach-Object {
             $line = $_
             if ($line -notmatch $skipWord) {
                 $line = $line -creplace $wordToReplace, $newWord
             }
-            $newContent += $line + [Environment]::NewLine
+            if ($line -eq $lastLine) {
+                $newContent += $line
+            } else {
+                $newContent += $line + [Environment]::NewLine
+            }
             $lineCount++
-        }
-        # Trim the extra newline character
-        if ($lineCount -gt 0) {
-            $newContent = $newContent.TrimEnd([Environment]::NewLine)
         }
         Set-Content $file $newContent
         $count++
@@ -61,6 +60,7 @@ Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | Where-Object 
 }
 
 Write-Host "Number of files updated: $count"
+
 
 
 .\script.ps1 -directory "C:\MyDirectory" -fileExtensions "*.txt,*.log" -wordToReplace "oldWord" -newWord "newWord" -skipWord "skipWord" -skipSubfolder "C:\MyDirectory\SkipThisSubfolder"

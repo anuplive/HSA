@@ -2,6 +2,7 @@ version 2
 
 param ($directory, $fileExtensions, $wordToReplace, $newWord, $skipWord)
 
+$count = 0
 Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | ForEach-Object {
     $file = $_.FullName
     $content = Get-Content $file
@@ -11,8 +12,7 @@ Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | ForEach-Objec
         $content | ForEach-Object {
             $line = $_
             if ($line -notmatch $skipWord) {
-                $line = $line -replace $wordToReplace, $newWord, `
-                    ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+                $line = $line -creplace $wordToReplace, $newWord
             }
             $newContent += $line + [Environment]::NewLine
             $lineCount++
@@ -21,8 +21,12 @@ Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | ForEach-Objec
             $newContent = $newContent.TrimEnd([Environment]::NewLine)
         }
         Set-Content $file $newContent
+        $count++
     }
 }
+
+Write-Host "Number of files updated: $count"
+
 
 .\replace-word.ps1 -directory "C:\Test" -fileExtensions "*.txt" -wordToReplace "old" -newWord "new" -skipWord "skip"
 

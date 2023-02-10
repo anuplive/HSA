@@ -1,9 +1,9 @@
 version 2 
 
-param ($directory, $fileExtensions, $wordToReplace, $newWord, $skipWord)
+param ($directory, $fileExtensions, $wordToReplace, $newWord, $skipWord, $skipSubfolder)
 
 $count = 0
-Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | ForEach-Object {
+Get-ChildItem -Path $directory -Recurse -Include $fileExtensions | Where-Object { $_.FullName -notmatch [regex]::Escape($skipSubfolder) }|ForEach-Object {
     $file = $_.FullName
     $content = Get-Content $file
     if ($content -match $wordToReplace) {
@@ -29,6 +29,12 @@ Write-Host "Number of files updated: $count"
 
 
 .\replace-word.ps1 -directory "C:\Test" -fileExtensions "*.txt" -wordToReplace "old" -newWord "new" -skipWord "skip"
+
+
+
+
+
+
 
 
 #############

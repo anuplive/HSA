@@ -1,3 +1,75 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+public class WordReplacement {
+
+    public static void main(String[] args) throws IOException {
+        String directory = args[0];
+        String[] fileExtensions = args[1].split(",");
+        String wordToReplace = args[2];
+        String newWord = args[3];
+        String skipWord = args[4];
+        String skipSubfolder = args[5];
+
+        List<Path> files = getFiles(directory, fileExtensions, skipSubfolder);
+        int count = 0;
+
+        for (Path file : files) {
+            List<String> content = new ArrayList<>();
+            try (BufferedReader reader = Files.newBufferedReader(file)) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.add(line);
+                }
+            }
+
+            List<String> newContent = new ArrayList<>();
+            for (String line : content) {
+                if (!line.contains(skipWord)) {
+                    line = line.replace(wordToReplace, newWord);
+                }
+                newContent.add(line);
+            }
+            if (!newContent.isEmpty()) {
+                newContent.remove(newContent.size() - 1);
+                Files.write(file, String.join(System.lineSeparator(), newContent));
+                count++;
+            }
+        }
+        System.out.println("Number of files updated: " + count);
+    }
+
+    private static List<Path> getFiles(String directory, String[] fileExtensions, String skipSubfolder) throws IOException {
+        return Files.walk(Paths.get(directory))
+                .filter(Files::isRegularFile)
+                .filter(path -> {
+                    for (String extension : fileExtensions) {
+                        if (path.toString().endsWith(extension)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .filter(path -> !path.toString().contains(skipSubfolder))
+                .collect(Collectors.toList());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+###############
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

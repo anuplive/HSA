@@ -1,72 +1,88 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class PasswordResetThrottling {
+public class SearchFiles {
 
-  // Define the time frame and the maximum number of attempts allowed within that time frame.
-  private static final long THROTTLE_TIME_FRAME_MINUTES = 5;
-  private static final int MAX_PASSWORD_RESET_ATTEMPTS = 3;
+    public static void main(String[] args) {
+        String rootPath = "C:\\Users\\username\\Documents\\root-folder"; // replace with the path to the root folder you want to search
+        String emailRegex = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b"; // regex pattern for email addresses
+        String userRegex1 = "\\b(i|I)\\d{6}\\b"; // regex pattern for username pattern 1
+        String userRegex2 = "\\b(c|C)\\d{6}\\b"; // regex pattern for username pattern 2
 
-  private Map<String, LoginAttemptDetails> userLoginDetailsMap = new HashMap<>();
+        List<File> filesWithEmails = new ArrayList<>();
+        List<File> filesWithUsernames = new ArrayList<>();
+        List<File> filesWithBoth = new ArrayList<>();
 
-  public void resetPassword(String user) throws Exception {
-    long currentTimeMillis = System.currentTimeMillis();
+        try {
+            Files.walk(new File(rootPath).toPath())
+                    .filter(Files::isRegularFile)
+                    .forEach(file -> {
+                        String fileContent;
+                        try {
+                            fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+                            boolean hasEmail = false;
+                            boolean hasUser1 = false;
+                            boolean hasUser2 = false;
 
-    // Check if the user exists in the map.
-    LoginAttemptDetails loginAttemptDetails = userLoginDetailsMap.get(user);
+                            // check for email addresses
+                            Pattern emailPattern = Pattern.compile(emailRegex, Pattern.CASE_INSENSITIVE);
+                            Matcher emailMatcher = emailPattern.matcher(fileContent);
+                            while (emailMatcher.find()) {
+                                hasEmail = true;
+                            }
 
-    if (loginAttemptDetails == null) {
-      // If the user does not exist in the map, create a new entry with attemptCounter set to 1 and LastPasswordResetTime set to the current time.
-      loginAttemptDetails = new LoginAttemptDetails(1, currentTimeMillis);
-      userLoginDetailsMap.put(user, loginAttemptDetails);
-    } else {
-      // If the user exists in the map, increment the attemptCounter and update the LastPasswordResetTime to the current time.
-      loginAttemptDetails.setAttemptCounter(loginAttemptDetails.getAttemptCounter() + 1);
-      loginAttemptDetails.setLastPasswordResetTime(currentTimeMillis);
-    }
+                            // check for username pattern 1
+                            Pattern userPattern1 = Pattern.compile(userRegex1);
+                            Matcher userMatcher1 = userPattern1.matcher(fileContent);
+                            while (userMatcher1.find()) {
+                                hasUser1 = true;
+                            }
 
-    // Check if the time frame has elapsed since the last password reset attempt.
-    if (currentTimeMillis - loginAttemptDetails.getLastPasswordResetTime() > TimeUnit.MINUTES.toMillis(THROTTLE_TIME_FRAME_MINUTES)) {
-      // If the time frame has elapsed, reset the attemptCounter and LastPasswordResetTime.
-      loginAttemptDetails.setAttemptCounter(1);
-      loginAttemptDetails.setLastPasswordResetTime(currentTimeMillis);
-    }
+                            // check for username pattern 2
+                            Pattern userPattern2 = Pattern.compile(userRegex2);
+                            Matcher userMatcher2 = userPattern2.matcher(fileContent);
+                            while (userMatcher2.find()) {
+                                hasUser2 = true;
+                            }
 
-    // Check if the maximum number of password reset attempts has been reached within the time frame.
-    if (loginAttemptDetails.getAttemptCounter() > MAX_PASSWORD_RESET_ATTEMPTS) {
-      // If the maximum number of password reset attempts has been reached, throw an exception.
-      throw new Exception("You have exceeded the maximum number of password reset attempts. Please try again later.");
-    }
+                            if (hasEmail && hasUser1 && hasUser2) {
+                                filesWithBoth.add(file.toFile());
+                            } else if (hasEmail && hasUser1) {
+                                filesWithBoth.add(file.toFile());
+                            } else if (hasEmail && hasUser2) {
+                                filesWithBoth.add(file.toFile());
+                            } else if (hasUser1 && hasUser2) {
+                                filesWithBoth.add(file.toFile());
+                            } else if (hasEmail) {
+                                filesWithEmails.add(file.toFile());
+                            } else if (hasUser1 || hasUser2) {
+                                filesWithUsernames.add(file.toFile());
+                            }
 
-    // Perform the password reset.
-    // ...
-  }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
 
-  private static class LoginAttemptDetails {
-    private int attemptCounter;
-    private long lastPasswordResetTime;
+            // print results
+            System.out.println("Files with email addresses (#001):");
+            for (File file : filesWithEmails) {
+                System.out.println(file.getAbsolutePath());
+            }
 
-    public LoginAttemptDetails(int attemptCounter, long lastPasswordResetTime) {
-      this.attemptCounter = attemptCounter;
-      this.lastPasswordResetTime = lastPasswordResetTime;
-    }
+            System.out.println("\nFiles with usernames (#002):");
+            for (File file : filesWithUsernames) {
+                System.out.println(file.getAbsolutePath());
+            }
 
-    public int getAttemptCounter() {
-      return attemptCounter;
-    }
-
-    public void setAttemptCounter(int attemptCounter) {
-      this.attemptCounter = attemptCounter;
-    }
-
-    public long getLastPasswordResetTime() {
-      return lastPasswordResetTime;
-    }
-
-    public void setLastPasswordResetTime(long lastPasswordResetTime) {
-      this.lastPasswordResetTime = lastPasswordResetTime;
-    }
-  }
-
-}
+            System.out.println("\nFiles with both (#003):");
+            for (File file : filesWithBoth) {
+                System.out.println(file.getAbsolutePath() + " -- Patterns found: " +
+                        (file.getName().matches(emailRegex) ? "#001" : "") +
+                        (file.getName().matches(userRegex1) ||

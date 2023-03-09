@@ -1,213 +1,23 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
-public class WordReplacement {
+Here is an example command to search for available versions of the Spring framework: 
+mvn versions:display-dependency-updates -DgroupId=org.springframework -DartifactId=spring-core
 
-    public static void main(String[] args) throws IOException {
-        String directory = args[0];
-        String[] fileExtensions = args[1].split(",");
-        String wordToReplace = args[2];
-        String newWord = args[3];
-        String skipWord = args[4];
-        String skipSubfolder = args[5];
+After running this Maven will display a list of available versions for the specified package, along with the latest version and the version used by your project (if any).
 
-        List<Path> files = getFiles(directory, fileExtensions, skipSubfolder);
-        int count = 0;
+To update your project to use the latest version of the package, use the following command:
+For example, if the version property for Spring is defined as spring.version, you would use the following command:
 
-        for (Path file : files) {
-            List<String> content = new ArrayList<>();
-            try (BufferedReader reader = Files.newBufferedReader(file)) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.add(line);
-                }
-            }
+mvn versions:update-properties -DincludeProperties=spring.version -DallowSnapshots=true
 
-            List<String> newContent = new ArrayList<>();
-            for (String line : content) {
-                if (!line.contains(skipWord)) {
-                    line = line.replace(wordToReplace, newWord);
-                }
-                newContent.add(line);
-            }
-            if (!newContent.isEmpty()) {
-                newContent.remove(newContent.size() - 1);
-                Files.write(file, String.join(System.lineSeparator(), newContent));
-                count++;
-            }
-        }
-        System.out.println("Number of files updated: " + count);
-    }
+If you want to update a specific version of a package, use the following command
+mvn versions:set -DnewVersion=<new-version> -DgroupId=<group-id> -DartifactId=<artifact-id>
 
-    private static List<Path> getFiles(String directory, String[] fileExtensions, String skipSubfolder) throws IOException {
-        return Files.walk(Paths.get(directory))
-                .filter(Files::isRegularFile)
-                .filter(path -> {
-                    for (String extension : fileExtensions) {
-                        if (path.toString().endsWith(extension)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                })
-                .filter(path -> !path.toString().contains(skipSubfolder))
-                .collect(Collectors.toList());
-    }
-}
+
+if you want to update the version of Spring Core to version 5.3.9.RELEASE, you would use the following command:
+mvn versions:set -DnewVersion=5.3.9.RELEASE -DgroupId=org.springframework -DartifactId=spring-core
 
 
 
-
-
-
-
-
-
-
-###############
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-public class WordReplacement {
-    public static void main(String[] args) throws IOException {
-        String directory = args[0];
-        String[] fileExtensions = args[1].split(",");
-        String wordToReplace = args[2];
-        String newWord = args[3];
-        String skipWord = args[4];
-        String skipSubfolder = args[5];
-        int count = 0;
-
-        List<File> files = getFiles(directory, fileExtensions, skipSubfolder);
-        for (File file : files) {
-            String fileContent = readFile(file);
-            if (fileContent.contains(wordToReplace)) {
-                String newContent = replaceWord(fileContent, wordToReplace, newWord, skipWord);
-                writeFile(file, newContent);
-                count++;
-            }
-        }
-        System.out.println("Number of files updated: " + count);
-    }
-
-    private static List<File> getFiles(String directory, String[] fileExtensions, String skipSubfolder) {
-        List<File> files = new ArrayList<>();
-        File folder = new File(directory);
-        File[] listOfFiles = folder.listFiles();
-
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                for (String extension : fileExtensions) {
-                    if (file.getName().endsWith(extension)) {
-                        files.add(file);
-                    }
-                }
-            } else if (file.isDirectory() && !file.getName().equals(skipSubfolder)) {
-                files.addAll(getFiles(file.getAbsolutePath(), fileExtensions, skipSubfolder));
-            }
-        }
-        return files;
-    }
-
-    private static String readFile(File file) throws FileNotFoundException {
-        Scanner scanner = new Scanner(file);
-        String content = scanner.useDelimiter("\\Z").next();
-        scanner.close();
-        return content;
-    }
-
-    private static String replaceWord(String content, String wordToReplace, String newWord, String skipWord) {
-        Pattern pattern = Pattern.compile("(?<!\\S)" + wordToReplace + "(?!\\S)");
-        Matcher matcher = pattern.matcher(content);
-        String newContent = matcher.replaceAll(newWord);
-        newContent = newContent.replaceAll("(?m)^" + skipWord + "$", skipWord);
-        return newContent;
-    }
-
-    private static void writeFile(File file, String content) throws IOException {
-        Path path = Paths.get(file.getAbsolutePath());
-        Files.write(path, content.getBytes());
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-##########
-
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class WordReplacement {
-
-    public static void main(String[] args) throws IOException {
-        String directory = args[0];
-        String[] fileExtensions = args[1].split(",");
-        String wordToReplace = args[2];
-        String newWord = args[3];
-        String skipWord = args[4];
-        String skipSubfolder = args[5];
-
-        List<Path> files = getFiles(directory, fileExtensions, skipSubfolder);
-        int count = 0;
-
-        for (Path file : files) {
-            List<String> content = Files.readAllLines(file);
-            List<String> newContent = new ArrayList<>();
-            for (String line : content) {
-                if (!line.contains(skipWord)) {
-                    line = line.replace(wordToReplace, newWord);
-                }
-                newContent.add(line);
-            }
-            if (!newContent.isEmpty()) {
-                newContent.remove(newContent.size() - 1);
-                Files.write(file, newContent.stream().collect(Collectors.joining("\n")).getBytes());
-                count++;
-            }
-        }
-        System.out.println("Number of files updated: " + count);
-    }
-
-    private static List<Path> getFiles(String directory, String[] fileExtensions, String skipSubfolder) throws IOException {
-        return Files.walk(Paths.get(directory))
-                .filter(Files::isRegularFile)
-                .filter(path -> {
-                    for (String extension : fileExtensions) {
-                        if (path.toString().endsWith(extension)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                })
-                .filter(path -> !path.toString().contains(skipSubfolder))
-                .collect(Collectors.toList());
-    }
-}
+Here's an example that demonstrates the mvn dependency:tree command with all the above options:
+mvn dependency:tree -Dverbose -Dincludes=com.example:example-core -Dexcludes=junit:junit,org.slf4j:slf4j-log4j12 -Dtokens=artifactId,groupId,version,scope
+This command will display a verbose tree of all dependencies for the project, including transitive dependencies, that match the com.example:example-core artifactId or groupId, but excluding the junit:junit and org.slf4j:slf4j-log4j12 artifactIds or groupIds. The output will include only the artifactId, groupId, version, and scope tokens.

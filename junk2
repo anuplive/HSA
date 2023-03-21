@@ -1,23 +1,5 @@
-
-Here is an example command to search for available versions of the Spring framework: 
-mvn versions:display-dependency-updates -DgroupId=org.springframework -DartifactId=spring-core
-
-After running this Maven will display a list of available versions for the specified package, along with the latest version and the version used by your project (if any).
-
-To update your project to use the latest version of the package, use the following command:
-For example, if the version property for Spring is defined as spring.version, you would use the following command:
-
-mvn versions:update-properties -DincludeProperties=spring.version -DallowSnapshots=true
-
-If you want to update a specific version of a package, use the following command
-mvn versions:set -DnewVersion=<new-version> -DgroupId=<group-id> -DartifactId=<artifact-id>
-
-
-if you want to update the version of Spring Core to version 5.3.9.RELEASE, you would use the following command:
-mvn versions:set -DnewVersion=5.3.9.RELEASE -DgroupId=org.springframework -DartifactId=spring-core
-
-
-
-Here's an example that demonstrates the mvn dependency:tree command with all the above options:
-mvn dependency:tree -Dverbose -Dincludes=com.example:example-core -Dexcludes=junit:junit,org.slf4j:slf4j-log4j12 -Dtokens=artifactId,groupId,version,scope
-This command will display a verbose tree of all dependencies for the project, including transitive dependencies, that match the com.example:example-core artifactId or groupId, but excluding the junit:junit and org.slf4j:slf4j-log4j12 artifactIds or groupIds. The output will include only the artifactId, groupId, version, and scope tokens.
+Role : 
+As a senior developer in the SAP Product Architecture and Security team, Anup is responsible for writing efficient and maintainable code using Core Java to support the massive code base of Fieldglass application, which spans 7-8 million lines.
+He mentors less experienced developers and stays current with the latest best practices and trends in software development.
+Anup is also accountable for designing and developing applications using Struts and Spring Frameworks, Web Services, and server-side JavaScript, as well as deploying applications on the cloud.
+These responsibilities allow him to apply concepts from his Master's program in Information Systems Management from Carnegie Mellon University in a live production environment.
